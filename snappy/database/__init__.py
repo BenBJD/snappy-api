@@ -1,7 +1,7 @@
 from mysql import connector
 from .. import app
 from flask import g
-from . import friends, user, snap
+from . import friends, user, snaps
 
 
 # Opening and closing connection
