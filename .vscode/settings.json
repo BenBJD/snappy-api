@@ -1,3 +1,17 @@
 {
-    "python.pythonPath": "/home/ben/.local/share/virtualenvs/snappy-api-Ye1fJvXK/bin/python"
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "xprotocol"
+            },
+            "previewLimit": 50,
+            "server": "bjdhome.co.uk",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "Snappy",
+            "database": "snappy",
+            "username": "root",
+            "password": "Equin0x02"
+        }
+    ]
 }

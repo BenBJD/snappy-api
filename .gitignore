@@ -2,6 +2,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/flask,vscode
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask,vscode
 
+Snappy.session.sql
+
 ### Flask ###
 instance/*
 !instance/.gitignore

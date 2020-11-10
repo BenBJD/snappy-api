@@ -4,10 +4,6 @@ from flask import jsonify, request, send_from_directory
 
 from snappy import app, database
 
-@app.route("/hello", methods=["GET"])
-def hello():
-    return jsonify()
-
 
 # Friends
 @app.route("/api/v1/friends/load", methods=["GET"])
