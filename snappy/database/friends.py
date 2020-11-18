@@ -1,20 +1,28 @@
-from flask import g
-from mysql import connector
-from .. import app
+from . import open_db
 
-def open_db():
-    g.db = connector.connect(
-        host=app.config["DB_HOST"],
-        user=app.config["DB_USER"],
-        password=app.config["DB_PASSWORD"],
-        database=app.config["DB_NAME"]
-    )
+def load(user_ID):
+    db = open_db()
+    cursor = db.cursor(buffered=True, dictionary=True)
+    sql = f"SELECT * FROM friendsTable WHERE userID = {user_ID}"
+    cursor.execute(sql)
+    db.close()
+    return cursor.fetchall()
 
+def add(user_ID, friend_ID):
+    db = open_db()
+    cursor = db.cursor(buffered=True)
+    sql = f"INSERT INTO friendsTable (userID, friendID) VALUES ({user_ID}, {friend_ID})"
+    cursor.execute(sql)
+    db.commit()
+    db.close()
+    return "success"
 
-def close_db():
-    g.db.close()
+def remove(user_ID, friend_ID):
+    db = open_db()
+    cursor = db.cursor(buffered=True)
+    sql = f"DELETE FROM friendsTable WHERE userID = {user_ID} AND friendID = {friend_ID}"
+    cursor.execute(sql)
+    db.commit()
+    db.close()
+    return "success"
 
-
-def load(user_id):
-    g.open_db()
-    

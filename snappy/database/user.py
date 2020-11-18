@@ -2,7 +2,6 @@ from . import open_db
 from uuid import uuid1
 import time
 from werkzeug.security import check_password_hash, generate_password_hash
-from .. import app
 
 
 def add(email, password, dark_mode, user_name):
@@ -20,10 +19,14 @@ def add(email, password, dark_mode, user_name):
 def delete(user_ID):
     sql1 = f"DELETE * FROM usersTable WHERE userID = {user_ID}"
     sql2 = f"DELETE * FROM userTokenTable WHERE userID = {user_ID}"
+    sql3 = f"DELETE * FROM snapTable WHERE userID = {user_ID}"
+    sql4 = f"DELETE * FROM friendTable WHERE userID = {user_ID}"
     db = open_db()
     cursor = db.cursor()
     cursor.execute(sql1)
     cursor.execute(sql2)
+    cursor.execute(sql3)
+    cursor.execute(sql4)
     db.commit()
     db.close()
     return "success"
@@ -39,16 +42,15 @@ def login(user, password):
         cursor.execute(f"SELECT * FROM userTable WHERE userName = {user}")
     if cursor.rowcount() == 0:
         return "failed"
+    else:
+        user_data = cursor.fetchone()
     # Check if password is correct
-    user_data = cursor.fetchone()
     if not check_password_hash(user_data["password"], password):
         return "failed"
     # Get user id and login token and return
     login_token = uuid1()
     expires_time = time.time() + 2592000
-    sql = f"INSERT INTO userTokenTable (loginToken, userID, expireTime) VALUES ({login_token}, {user_data["user_ID"]}, {expires_time}"
-    db = open_db()
-    cursor = db.cursor()
+    sql = f"INSERT INTO userTokenTable (loginToken, userID, expireTime) VALUES ({login_token}, {user_data['user_ID']}, {expires_time})"
     cursor.execute(sql)
     db.commit()
     db.close()
@@ -65,13 +67,18 @@ def logout(user_ID):
     return "success"
 
 
-def load(user_ID):
-    sql = f"SELECT * FROM userTable WHERE userID = {user_ID}"
+def load(user_ID, search_ID):
+    if search_ID == all:
+        sql = f"SELECT userID, userName, snapScore FROM userTable"
+    elif user_ID == search_ID:
+        sql = f"SELECT * FROM userTable WHERE userID = {user_ID}"
+    else: 
+        return "permission denied"
     db = open_db()
     cursor = db.cursor(buffered=True, dictionary=True)
     cursor.execute(sql)
     db.close()
-    return cursor.fetchone()
+    return cursor.fetchall()
 
 
 def save(user_ID, email=None, user_name=None, password=None, dark_mode=None):

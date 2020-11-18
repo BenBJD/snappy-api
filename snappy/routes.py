@@ -1,6 +1,6 @@
 # Imports
 from flask import jsonify, request, send_from_directory
-
+from uuid import uuid1
 from . import app, database
 
 ### Friends ###
@@ -38,12 +38,12 @@ def add_friend():
     # Load request data
     login_token = request.form["login_token"]
     user_ID = request.form["user_ID"]
-    friend_id = request.form["friend_id"]
+    friend_ID = request.form["friend_ID"]
     # Check login token
     if database.user.login_token_valid(user_ID, login_token):
         # return json response of the result
         return jsonify({
-            "result": database.friends.add(user_ID, friend_id)
+            "result": database.friends.add(user_ID, friend_ID)
         })
     else:
         return jsonify({
@@ -65,10 +65,10 @@ If login token is invalid, return a json response where result = "permission den
 def remove_friend():
     login_token = request.form["login_token"]
     user_ID = request.form["user_ID"]
-    friend_id = request.form["friend_id"]
+    friend_ID = request.form["friend_ID"]
     if database.user.login_token_valid(user_ID, login_token):
         return jsonify({
-            "result": database.friends.remove(user_ID, friend_id)
+            "result": database.friends.remove(user_ID, friend_ID)
         })
     else:
         return jsonify({
@@ -166,19 +166,21 @@ def logout_user():
 """
 URL: /api/v1/user/load
 Methods: GET
-Required form data: login_token (string), user_ID (string)
+Required form data: login_token (string), user_ID (string), search_ID (string)
 
 Description:
 Gets the login token and user ID from the request then checks if it is valid with database.user.login_token_valid().
-If login token is valid, load the data of the user with database.user.load() and return the result
+If login token is valid, load the data of the user specified with search_ID with database.user.load() and return the result.
+If the search ID is 'all' then a list of all the users will be returned sans some private details.
 If login token is invalid, return result = "permission denied"
 """
 @app.route("/api/v1/user/load", methods=["GET"])
 def load_user():
     user_ID = request.form["user_ID"]
+    search_ID = request.form["search_ID"]
     login_token = request.form["login_token"]
     if database.user.login_token_valid(user_ID, login_token):
-        return jsonify(database.user.load(user_ID))
+        return jsonify(database.user.load(user_ID, search_ID))
     else:
         return jsonify({
             "result": "permission denied"
@@ -230,8 +232,10 @@ def send_snap():
     to_user_ID = request.form["to_user_ID"]
     image = request.files["image"]
     if database.user.login_token_valid(user_ID, login_token):
+        snap_ID = uuid1()
+        image.save(f"./uploads/{snap_ID}")
         return jsonify({
-            "result": database.snaps.send(user_ID, to_user_ID, image)
+            "result": database.snaps.send(user_ID, to_user_ID, snap_ID)
         })
     else:
         return jsonify({
@@ -275,9 +279,10 @@ If login token is invalid, return a json response where result = "permission den
 def download_snap():
     user_ID = request.form["user_ID"]
     login_token = request.form["login_token"]
-    snap_id = request.form["snap_id"]
+    snap_ID = request.form["snap_ID"]
     if database.user.login_token_valid(user_ID, login_token):
-        return send_from_directory(directory="./uploads", filename=(snap_id + ".jpg"))
+        database.snaps.delete(snap_ID)
+        return send_from_directory(directory="./uploads", filename=(snap_ID + ".jpg"))
     else:
         return jsonify({
             "result": "permission denied"
