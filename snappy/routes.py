@@ -6,7 +6,6 @@ from . import app, database
 ### Friends ###
 """
 URL: /api/v1/friends/load
-Methods: GET
 Required form data: login_token (string), user_ID (string)
 
 Description:
@@ -14,18 +13,23 @@ Gets the login token and user ID from the request then checks if it is valid wit
 If login token is valid, load the rows of the user's friends with database.friends.load() and return the rows
 If login token is invalid, return a json response where result = "permission denied"
 """
-@app.route("/api/v1/friends/load", methods=["GET"])
+@app.route("/api/v1/friends/load", methods=["POST"])
 def load_friends():
     # Load request data
-    login_token = request.form.get("login_token")
-    user_ID = request.form.get("user_ID")
+    login_token = request.form["login_token"]
+    user_ID = request.form["user_ID"]
     # Check login token
-    return jsonify(database.friends.load(user_ID))
+    if database.user.login_token_valid(user_ID, login_token):
+        # return json response of the result
+        return jsonify(database.friends.load(user_ID))
+    else:
+        return jsonify({
+            "result": "permission denied"
+        })
 
 
 """
 URL: /api/v1/friends/add
-Methods: POST
 Required form data: login_token (string), user_ID (string), friend_ID (string)
 
 Description:
@@ -53,7 +57,6 @@ def add_friend():
 
 """
 URL: /api/v1/friends/remove
-Methods: POST
 Required form data: login_token (string), user_ID (string), friend_ID (string)
 
 Description:
@@ -79,7 +82,6 @@ def remove_friend():
 ### User ###
 """
 URL: /api/v1/users/add
-Methods: POST
 Required form data: email (string), password (string), dark_mode (int), user_name (string)
 
 Description:
@@ -122,15 +124,14 @@ def delete_user():
 
 """
 URL: /api/v1/user/login
-Methods: GET
-Required form data: user_name (string), email (string), password (string)
+Required form data: user (string), password (string)
 
 Description:
-Get the user_name, email and password from the request and attempt a login with database.user.login().
+Get the user_name or email and password from the request and attempt a login with database.user.login().
 If the login failed e.g. wrong password then return result = "permission denied"
 If the login was successful, a login token for the user will be returned
 """
-@app.route("/api/v1/user/login", methods=["GET"])
+@app.route("/api/v1/user/login", methods=["POST"])
 def login_user():
     user = request.form["user"]
     password = request.form["password"]
@@ -141,7 +142,6 @@ def login_user():
 
 """
 URL: /api/v1/user/logout
-Methods: POST
 Required form data: login_token (string), user_ID (string)
 
 Description:
@@ -165,7 +165,6 @@ def logout_user():
 
 """
 URL: /api/v1/user/load
-Methods: GET
 Required form data: login_token (string), user_ID (string), search_ID (string)
 
 Description:
@@ -174,7 +173,7 @@ If login token is valid, load the data of the user specified with search_ID with
 If the search ID is 'all' then a list of all the users will be returned sans some private details.
 If login token is invalid, return result = "permission denied"
 """
-@app.route("/api/v1/user/load", methods=["GET"])
+@app.route("/api/v1/user/load", methods=["POST"])
 def load_user():
     user_ID = request.form["user_ID"]
     search_ID = request.form["search_ID"]
@@ -189,7 +188,6 @@ def load_user():
 
 """
 URL: /api/v1/user/save
-Methods: POST
 Required form data: login_token (string), user_ID (string)
 
 Description:
@@ -217,7 +215,6 @@ def save_user():
 # Snap
 """
 URL: /api/v1/snaps/send
-Methods: POST
 Required form data: login_token (string), user_ID (string), to_user_ID (string), image (file)
 
 Description:
@@ -245,7 +242,6 @@ def send_snap():
 
 """
 URL: /api/v1/snaps/load
-Methods: GET
 Required form data: login_token (string), user_ID (string)
 
 Description:
@@ -253,7 +249,7 @@ Gets the login token and user ID from the request then checks if it is valid wit
 If login token is valid, get a list of incoming snaps for the user database.snaps.load() and return the result
 If login token is invalid, return a json response where result = "permission denied"
 """
-@app.route("/api/v1/snaps/load", methods=["GET"])
+@app.route("/api/v1/snaps/load", methods=["POST"])
 def load_snaps():
     user_ID = request.form["user_ID"]
     login_token = request.form["login_token"]
@@ -267,7 +263,6 @@ def load_snaps():
 
 """
 URL: /api/v1/snaps/download
-Methods: GET
 Required form data: login_token (string), user_ID (string), snap_ID (string)
 
 Description:
@@ -275,7 +270,7 @@ Gets the login token and user ID from the request then checks if it is valid wit
 If login token is valid, 
 If login token is invalid, return a json response where result = "permission denied"
 """
-@app.route("/api/v1/snaps/download", methods=["GET"])
+@app.route("/api/v1/snaps/download", methods=["POST"])
 def download_snap():
     user_ID = request.form["user_ID"]
     login_token = request.form["login_token"]
