@@ -1,12 +1,18 @@
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, scoped_session
+
 from .. import app
-import mysql.connector
 
-def open_db():
-    return mysql.connector.connect(
-        host=app.config["DB_HOST"],
-        user=app.config["DB_USER"],
-        password=app.config["DB_PASSWORD"],
-        database=app.config["DB_NAME"]
-    )
+engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
 
-from . import friends, user, snaps
+db_session = scoped_session(sessionmaker(
+    autocommit=False, autoflush=False, bind=engine))
+
+Base = declarative_base()
+Base.query = db_session.query_property()
+
+
+def init_db():
+    from . import models
+    Base.metadata.create_all(bind=engine)

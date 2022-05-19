@@ -1,31 +1,47 @@
 # Imports
+import json
 from flask import jsonify, request, send_from_directory
 from uuid import uuid1
-from . import app, database
+
+from . import app
+from .database import db_session
+from .database.models import User, t_friend, LoginToken, Snap
 
 ### Friends ###
 """
 URL: /api/v1/friends/load
-Required form data: login_token (string), user_ID (string)
+Required form data: login_token (string)
 
 Description:
-Gets the login token and user ID from the request then checks if it is valid with database.user.login_token_valid().
-If login token is valid, load the rows of the user's friends with database.friends.load() and return the rows
+Gets the login token from the request then checks if it is valid.
+If login token is valid, load the rows of the user's friends
 If login token is invalid, return a json response where result = "permission denied"
 """
+
+
 @app.route("/api/v1/friends/load", methods=["POST"])
 def load_friends():
-    # Load request data
+
+    # Checking Login token
+    # Retrieve token from request body
     login_token = request.form["login_token"]
-    user_ID = request.form["user_ID"]
-    # Check login token
-    if database.user.login_token_valid(user_ID, login_token):
-        # return json response of the result
-        return jsonify(database.friends.load(user_ID))
-    else:
+    # Get the row (if exists) for the login token from DB
+    token_row = db_session.query(LoginToken).filter(
+        token=login_token)
+    # Reject if row doesn't exist or invalid
+    if len(token_row) != 1:
         return jsonify({
             "result": "permission denied"
         })
+    elif token_row[0]["valid"] != True:
+        return jsonify({
+            "result": "permission denied"
+        })
+    # If the token is valid:
+    else:
+        friend_rows = []
+        db_session.query(t_friend).filter(t_friend)
+        return jsonify()
 
 
 """
@@ -37,7 +53,9 @@ Gets the login token and user ID from the request then checks if it is valid wit
 If login token is valid, adds the friend with database.friends.add() and return the result
 If login token is invalid, return a json response where result = "permission denied"
 """
-@app.route("/api/v1/friends/add", methods=["POST"])
+
+
+@ app.route("/api/v1/friends/add", methods=["POST"])
 def add_friend():
     # Load request data
     login_token = request.form["login_token"]
@@ -64,7 +82,9 @@ Gets the login token and user ID from the request then checks if it is valid wit
 If login token is valid, remove the friend with database.friends.remove() and return the result
 If login token is invalid, return a json response where result = "permission denied"
 """
-@app.route("/api/v1/friends/remove", methods=["POST"])
+
+
+@ app.route("/api/v1/friends/remove", methods=["POST"])
 def remove_friend():
     login_token = request.form["login_token"]
     user_ID = request.form["user_ID"]
@@ -87,7 +107,9 @@ Required form data: email (string), password (string), dark_mode (int), user_nam
 Description:
 Get email, password, dark_mode and user_name from the request then add the user with database.user.add() and return the result
 """
-@app.route("/api/v1/user/add", methods=["POST"])
+
+
+@ app.route("/api/v1/user/add", methods=["POST"])
 def add_user():
     email = request.form["email"]
     password = request.form["password"]
@@ -108,7 +130,9 @@ Gets the login_token and user_ID from the request then checks if it is valid wit
 If login token is valid, remove the user with database.user.remove() and return the result
 If login token is invalid, return result = "permission denied"
 """
-@app.route("/api/v1/user/delete", methods=["POST"])
+
+
+@ app.route("/api/v1/user/delete", methods=["POST"])
 def delete_user():
     user_ID = request.form["user_ID"]
     login_token = request.form["login_token"]
@@ -131,7 +155,9 @@ Get the user_name or email and password from the request and attempt a login wit
 If the login failed e.g. wrong password then return result = "permission denied"
 If the login was successful, a login token for the user will be returned
 """
-@app.route("/api/v1/user/login", methods=["POST"])
+
+
+@ app.route("/api/v1/user/login", methods=["POST"])
 def login_user():
     user = request.form["user"]
     password = request.form["password"]
@@ -149,7 +175,9 @@ Gets the login_token and user_ID from the request then checks if it is valid wit
 If login token is valid, logout the user with database.user.remove() and return the result
 If login token is invalid, return result = "permission denied"
 """
-@app.route("/api/v1/user/logout", methods=["POST"])
+
+
+@ app.route("/api/v1/user/logout", methods=["POST"])
 def logout_user():
     user_ID = request.form["user_ID"]
     login_token = request.form["login_token"]
@@ -173,7 +201,9 @@ If login token is valid, load the data of the user specified with search_ID with
 If the search ID is 'all' then a list of all the users will be returned sans some private details.
 If login token is invalid, return result = "permission denied"
 """
-@app.route("/api/v1/user/load", methods=["POST"])
+
+
+@ app.route("/api/v1/user/load", methods=["POST"])
 def load_user():
     user_ID = request.form["user_ID"]
     search_ID = request.form["search_ID"]
@@ -195,7 +225,9 @@ Gets the login token and user ID from the request then checks if it is valid wit
 If login token is valid, save the user's new data to  with database.user.save() and return the result
 If login token is invalid, return result = "permission denied"
 """
-@app.route("/api/v1/user/save", methods=["POST"])
+
+
+@ app.route("/api/v1/user/save", methods=["POST"])
 def save_user():
     user_ID = request.form["user_ID"]
     login_token = request.form["login_token"]
@@ -222,7 +254,9 @@ Gets the login token, user ID, recieving user ID and the image from the request 
 If login token is valid, save the image and make add a row to database with database.snaps.send() then return the result
 If login token is invalid, return result = "permission denied"
 """
-@app.route("/api/v1/snaps/send", methods=["POST"])
+
+
+@ app.route("/api/v1/snaps/send", methods=["POST"])
 def send_snap():
     user_ID = request.form["user_ID"]
     login_token = request.form["login_token"]
@@ -249,7 +283,9 @@ Gets the login token and user ID from the request then checks if it is valid wit
 If login token is valid, get a list of incoming snaps for the user database.snaps.load() and return the result
 If login token is invalid, return a json response where result = "permission denied"
 """
-@app.route("/api/v1/snaps/load", methods=["POST"])
+
+
+@ app.route("/api/v1/snaps/load", methods=["POST"])
 def load_snaps():
     user_ID = request.form["user_ID"]
     login_token = request.form["login_token"]
@@ -267,10 +303,12 @@ Required form data: login_token (string), user_ID (string), snap_ID (string)
 
 Description:
 Gets the login token and user ID from the request then checks if it is valid with database.user.login_token_valid().
-If login token is valid, 
+If login token is valid,
 If login token is invalid, return a json response where result = "permission denied"
 """
-@app.route("/api/v1/snaps/download", methods=["POST"])
+
+
+@ app.route("/api/v1/snaps/download", methods=["POST"])
 def download_snap():
     user_ID = request.form["user_ID"]
     login_token = request.form["login_token"]

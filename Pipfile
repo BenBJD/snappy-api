@@ -4,9 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask = "*"
+Flask = "*"
 mysql-connector-python = "*"
-werkzeug = "*"
+Werkzeug = "*"
+SQLAlchemy = "*"
+psycopg2 = "*"
+Flask-Migrate = "*"
+alembic = "*"
 
 [dev-packages]
 

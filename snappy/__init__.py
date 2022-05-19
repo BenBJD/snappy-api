@@ -1,8 +1,9 @@
 # imports
-from flask import Flask
+from .app import app
+from .database import db_session
+from . import routes
 
-# Flask setup and config loading
-app = Flask(__name__, instance_relative_config=True)
-app.config.from_pyfile('config.py')
 
-from . import routes, database
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
