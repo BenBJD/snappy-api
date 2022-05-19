@@ -5,20 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Flask",
-            "type": "python",
+            "name": "Launch via NPM",
             "request": "launch",
-            "module": "flask",
-            "env": {
-                "FLASK_APP": "snappy",
-                "FLASK_ENV": "development",
-                "FLASK_DEBUG": "1"
-            },
-            "args": [
-                "run",
-                "--no-debugger"
-            ],
-            "jinja": true
+            "runtimeArgs": ["run", "devstart"],
+            "runtimeExecutable": "npm",
+            "skipFiles": ["<node_internals>/**"],
+            "type": "node"
         }
     ]
 }

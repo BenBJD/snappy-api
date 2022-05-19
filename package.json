@@ -1,0 +1,29 @@
+{
+    "name": "snappy-api",
+    "version": "1.0.0",
+    "description": "API for snappy",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "devstart": "nodemon node app.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BenBJD/snappy-api.git"
+    },
+    "author": "Ben Davison",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/BenBJD/snappy-api/issues"
+    },
+    "homepage": "https://github.com/BenBJD/snappy-api#readme",
+    "dependencies": {
+        "dotenv": "^16.0.1",
+        "express": "^4.18.1"
+    },
+    "devDependencies": {
+        "eslint": "^8.15.0",
+        "nodemon": "^2.0.16"
+    }
+}
