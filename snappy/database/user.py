@@ -1,7 +1,6 @@
 from . import open_db
 from uuid import uuid1
 import time
-from werkzeug.security import check_password_hash, generate_password_hash
 
 
 def add(email, password, dark_mode, user_name):
@@ -32,34 +31,30 @@ def delete(user_ID):
     return "success"
 
 
-def login(user, password):
-    db = open_db()
-    cursor = db.cursor(dictionary=True, buffered=True)
-    # Get user data
-    if "@" in user:
-        cursor.execute(f"SELECT * FROM userTable WHERE email = '{user}'")
-    else:
-        cursor.execute(f"SELECT * FROM userTable WHERE userName = '{user}'")
-    if cursor.rowcount == 0:
-        return "failed"
-    else:
-        user_data = cursor.fetchone()
-    # Check if password is correct
-    if check_password_hash(user_data["password"], password) == False:
-        return "failed"
-    # Get user id and login token and return
-    login_token = uuid1()
-    expires_time = time.time() + 2592000
-    user_ID = user_data["userID"]
-    sql = f"INSERT INTO userTokenTable (loginToken, userID, expireTime) VALUES ('{login_token}', '{user_ID}', '{expires_time}')"
-    cursor.execute(sql)
-    db.commit()
-    db.close()
-    result = {
-        "login_token": login_token,
-        "user_ID": user_ID
-    }
-    return result
+# def new_token(user, password):
+#     db = open_db()
+#     cursor = db.cursor(dictionary=True, buffered=True)
+#     # Get user data
+#     if "@" in user:
+#         cursor.execute(f"SELECT (id) FROM userTable WHERE email = '{user}'")
+#     else:
+#         cursor.execute(f"SELECT (id) FROM userTable WHERE userName = '{user}'")
+#     if cursor.rowcount == 0:
+#         return "failed"
+#     else:
+#         user_data = cursor.fetchone()
+#     # Get user id and login token and return
+#     login_token = uuid1()
+#     expires_time = time.time() + 2592000
+#     user_ID = user_data["userID"]
+#     cursor.execute(sql)
+#     db.commit()
+#     db.close()
+#     result = {
+#         "login_token": login_token,
+#         "user_id": user_ID
+#     }
+#     return result
 
 
 def logout(user_ID):
@@ -72,18 +67,22 @@ def logout(user_ID):
     return "success"
 
 
-def load(user_ID, search_ID):
-    if search_ID == all:
-        sql = f"SELECT userID, userName, snapScore FROM userTable"
-    elif user_ID == search_ID:
-        sql = f"SELECT * FROM userTable WHERE userID = '{user_ID}'"
-    else: 
-        return "permission denied"
+def load(term, form):
+    sql = ""
+    if form == "id":
+        sql = f"SELECT * FROM userTable where id = '{term}'"
+    elif form == "email":
+        sql = f"SELECT * FROM userTable WHERE id = '{term}'"
+    elif form == "username":
+        sql = f"SELECT * FROM userTable WHERE id = '{term}'"
+    else:
+        print("invalid option: expects id, email or username")
+        return {"error": "invalid option"}
     db = open_db()
     cursor = db.cursor(buffered=True, dictionary=True)
     cursor.execute(sql)
     db.close()
-    return cursor.fetchall
+    return cursor.fetchone()
 
 
 def save(user_ID, email=None, user_name=None, password=None, dark_mode=None):

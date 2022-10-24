@@ -1,8 +1,8 @@
 # imports
-from flask import Flask
+import uvicorn
+from fastapi import FastAPI
+from .routes import api
 
-# Flask setup and config loading
-app = Flask(__name__, instance_relative_config=True)
-app.config.from_pyfile('config.py')
+app = FastAPI()
 
-from . import routes, database
+app.include_router(api)

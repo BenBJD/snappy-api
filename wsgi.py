@@ -1,4 +1,4 @@
-from snappy import app
+import uvicorn
 
 if __name__ == '__main__':
-    app.run()
+    uvicorn.run("snappy:app", reload=True)
