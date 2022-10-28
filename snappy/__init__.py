@@ -1,7 +1,7 @@
 # imports
-import uvicorn
 from fastapi import FastAPI
-from .routes import api
+
+from .routers import snap, friend, user
 
 app = FastAPI()
 

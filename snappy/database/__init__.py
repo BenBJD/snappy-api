@@ -1,12 +1,11 @@
-from .. import app
-import mysql.connector
+import psycopg2
+from ..config import settings
+
 
 def open_db():
-    return mysql.connector.connect(
-        host=app.config["DB_HOST"],
-        user=app.config["DB_USER"],
-        password=app.config["DB_PASSWORD"],
-        database=app.config["DB_NAME"]
-    )
-
-from . import friends, user, snaps
+    db = psycopg2.connect(database=settings.db_name,
+                          host=settings.db_host,
+                          user=settings.db_user,
+                          password=settings.db_password,
+                          port=settings.db_port)
+    return db
