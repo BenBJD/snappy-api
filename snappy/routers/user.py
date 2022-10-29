@@ -1,147 +1,72 @@
-from fastapi import APIRouter
+from datetime import timedelta
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+
+from ..config import settings
+from ..database import user as user_database
+from ..dependencies import get_current_user, create_access_token
+from ..models import UserInDB, Token
 
 api = APIRouter(prefix="/api/user")
-api.mount("/static", StaticFiles(directory="./static"))
-
-"""
-URL: /api/v1/users/add
-Required form data: email (string), password (string), dark_mode (int), user_name (string)
-
-Description:
-Get email, password, dark_mode and user_name from the request then add the user with database.user.add() and return the result
-"""
 
 
-@api.post("/user/add")
-def add_user():
-    email = request.form["email"]
-    password = request.form["password"]
-    dark_mode = request.form["dark_mode"]
-    user_name = request.form["user_name"]
-    return {
-        "result": database.user.add(email, password, dark_mode, user_name)
-    }
+@api.put("/", status_code=201)
+def add_user(username: str, password: str):
+    user_database.add(username, password)
 
 
-"""
-URL: /api/v1/user/delete
-Methods: POST
-Required form data: login_token (string), user_id (string)
-
-Description:
-Gets the login_token and user_id from the request then checks if it is valid with database.user.login_token_valid().
-If login token is valid, remove the user with database.user.remove() and return the result
-If login token is invalid, return result = "permission denied"
-"""
+@api.delete("/", status_code=200)
+def delete_user(current_user: UserInDB = Depends(get_current_user)):
+    user_database.delete(current_user.id)
 
 
-@api.post("/user/delete")
-def delete_user():
-    user_ID = request.form["user_id"]
-    login_token = request.form["login_token"]
-    if database.user.login_token_valid(user_ID, login_token):
-        return {
-            "result": database.user.delete(user_ID)
-        }
+# Authentication and token creation endpoint
+@api.post("/token", response_model=Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    # Get user
+    user_data = user_database.load(username=form_data.username)
+    if not user_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    user = UserInDB(**user_data)
+    # Exception if password wrong
+    if not user_database.pwd_context.verify(form_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    # Create access token
+    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    access_token = create_access_token(
+        data={"sub": user.id}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@api.get("/")
+def load_user(username: str, current_user: UserInDB = Depends(get_current_user)):
+    # If it's the logged-in user, just return current_user
+    if username == current_user.username:
+        del current_user.password_hash
+        return current_user
     else:
-        return {
-            "result": "permission denied"
-        }
+        pass
+    # For everyone else just return the id
+    user_data = user_database.load(username=username)
+    if not user_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid username",
+        )
+    user = UserInDB(**user_data)
+    return user.id
 
 
-"""
-URL: /api/v1/user/login
-Required form data: user (string), password (string)
-
-Description:
-Get the user_name or email and password from the request and attempt a login with database.user.login().
-If the login failed e.g. wrong password then return result = "permission denied"
-If the login was successful, a login token for the user will be returned
-"""
-
-
-@api.post("/user/login")
-def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
-    token = ""
-    return {
-        "access_token": token,
-        "token_type": "bearer"
-    }
-
-
-"""
-URL: /api/v1/user/logout
-Required form data: login_token (string), user_id (string)
-
-Description:
-Gets the login_token and user_id from the request then checks if it is valid with database.user.login_token_valid().
-If login token is valid, logout the user with database.user.remove() and return the result
-If login token is invalid, return result = "permission denied"
-"""
-
-
-@api.post("/user/logout")
-def logout_user():
-    user_ID = request.form["user_id"]
-    login_token = request.form["login_token"]
-    if database.user.login_token_valid(user_ID, login_token):
-        return {
-            "result": database.user.logout(user_ID)
-        }
-    else:
-        return {
-            "result": "permission denied"
-        }
-
-
-"""
-URL: /api/v1/user/load
-Required form data: login_token (string), user_id (string), search_ID (string)
-
-Description:
-Gets the login token and user ID from the request then checks if it is valid with database.user.login_token_valid().
-If login token is valid, load the data of the user specified with search_ID with database.user.load() and return the result.
-If the search ID is 'all' then a list of all the users will be returned sans some private details.
-If login token is invalid, return result = "permission denied"
-"""
-
-
-@api.post("/user/load")
-def load_user():
-    user_ID = request.form["user_id"]
-    search_ID = request.form["search_ID"]
-    login_token = request.form["login_token"]
-    if database.user.login_token_valid(user_ID, login_token):
-        return database.user.load(user_ID, search_ID)
-    else:
-        return {
-            "result": "permission denied"
-        }
-
-
-"""
-URL: /api/v1/user/save
-Required form data: login_token (string), user_id (string)
-
-Description:
-Gets the login token and user ID from the request then checks if it is valid with database.user.login_token_valid().
-If login token is valid, save the user's new data to  with database.user.save() and return the result
-If login token is invalid, return result = "permission denied"
-"""
-
-
-@api.post("/user/save")
-def save_user():
-    user_ID = request.form["user_id"]
-    login_token = request.form["login_token"]
-    password = request.form["password"]
-    dark_mode = request.form["dark_mode"]
-    user_name = request.form["user_name"]
-    if database.user.login_token_valid(user_ID, login_token):
-        return {
-            "result": database.user.save(user_ID, password, dark_mode, user_name)
-        }
-    else:
-        return {
-            "result": "permission denied"
-        }
+@api.post("/", status_code=200)
+def change_password(password: str, current_user: UserInDB = Depends(get_current_user)):
+    user_database.save(current_user.id, password=password)

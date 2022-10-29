@@ -1,4 +1,5 @@
 from . import open_db
+from ..models import Friend
 
 
 # Load users
@@ -16,8 +17,9 @@ def load(user_id: str, confirmed: bool = False):
             "SELECT * FROM friend where (user_1_id = %s or user_2_id = %s)",
             (user_id, user_id),
         )
+    result: list[Friend] = cursor.fetchall()
     db.close()
-    return {"result": "success", "data": cursor.fetchall()}
+    return result
 
 
 def add(user_id, friend_user_id):
@@ -29,7 +31,7 @@ def add(user_id, friend_user_id):
     )
     db.commit()
     db.close()
-    return {"result": "success"}
+    return
 
 
 def confirm(user_id, friend_user_id):
@@ -43,7 +45,7 @@ def confirm(user_id, friend_user_id):
     )
     db.commit()
     db.close()
-    return {"result": "success"}
+    return
 
 
 def remove(user_id, friend_user_id):
@@ -57,4 +59,4 @@ def remove(user_id, friend_user_id):
     )
     db.commit()
     db.close()
-    return {"result": "success"}
+    return

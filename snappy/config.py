@@ -7,9 +7,13 @@ class Settings(BaseSettings):
     db_password: str
     db_name: str
     db_port: int
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int
 
     class Config:
-        env_file = "../.env"
+        case_sensitive = False
+        env_file = ".env"
 
 
 settings = Settings()
