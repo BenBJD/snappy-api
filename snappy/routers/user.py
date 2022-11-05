@@ -22,7 +22,7 @@ def delete_user(current_user: UserInDB = Depends(get_current_user)):
 
 
 # Authentication and token creation endpoint
-@api.post("/token", response_model=Token)
+@api.post("/token/", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     # Get user
     user_data = user_database.load(username=form_data.username)
@@ -50,8 +50,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @api.get("/")
 def load_user(username: str, current_user: UserInDB = Depends(get_current_user)):
-    # If it's the logged-in user, just return current_user
-    if username == current_user.username:
+    # If username is given as "me", return the current user
+    if username == "me":
         del current_user.password_hash
         return current_user
     else:

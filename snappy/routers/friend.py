@@ -7,18 +7,18 @@ from ..models import UserInDB
 api = APIRouter(prefix="/api/friend")
 
 
-@api.get("", status_code=200)
+@api.get("/", status_code=200)
 def load_friends(current_user: UserInDB = Depends(get_current_user)):
     friends = friend_database.load(current_user.id)
     return friends
 
 
-@api.put("", status_code=201)
+@api.put("/", status_code=201)
 def add_friend(friend_id: str, current_user: UserInDB = Depends(get_current_user)):
     friend_database.add(current_user.id, friend_id)
 
 
-@api.delete("")
+@api.delete("/")
 def remove_friend(friend_id: str, current_user: UserInDB = Depends(get_current_user)):
     friend_database.remove(current_user.id, friend_id)
 

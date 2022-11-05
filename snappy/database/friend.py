@@ -1,5 +1,4 @@
 from . import open_db
-from ..models import Friend
 
 
 # Load users
@@ -7,19 +6,47 @@ from ..models import Friend
 def load(user_id: str, confirmed: bool = False):
     db = open_db()
     cursor = db.cursor()
+    results = []
     if confirmed:
+        # cursor.execute(
+        #     "SELECT * FROM friend where confirmed = true and (user_1_id = %s or user_2_id = %s)",
+        #     (user_id, user_id),
+        # )
         cursor.execute(
-            "SELECT * FROM friend where confirmed = true and (user_1_id = %s or user_2_id = %s)",
-            (user_id, user_id),
+            "SELECT friend.user_1_id, friend.confirmed, users.username, users.snappy_score from friend inner join "
+            "users on friend.user_1_id = users.id where confirmed = true and user_1_id = %s "
         )
+        results.append(cursor.fetchall())
+        cursor.execute(
+            "SELECT friend.user_2_id, friend.confirmed, users.username, users.snappy_score from friend inner join "
+            "users on friend.user_2_id = users.id where confirmed = true and user_2_id = %s "
+        )
+        results.append(cursor.fetchall())
     else:
-        cursor.execute(
-            "SELECT * FROM friend where (user_1_id = %s or user_2_id = %s)",
-            (user_id, user_id),
+        ccursor.execute(
+            "SELECT friend.user_1_id, friend.confirmed, users.username, users.snappy_score from friend inner join "
+            "users on friend.user_1_id = users.id where user_1_id = %s "
         )
-    result: list[Friend] = cursor.fetchall()
+        results.append(cursor.fetchall())
+        cursor.execute(
+            "SELECT friend.user_2_id, friend.confirmed, users.username, users.snappy_score from friend inner join "
+            "users on friend.user_2_id = users.id where user_2_id = %s "
+        )
+        results.append(cursor.fetchall())
+    results.append(cursor.fetchall())
+    # Change to only contain the friend's ids
+    friends = []
+    for result in results:
+        if not result.user_1_id == user_id:
+            friends.append(
+                {"friend_id": result.user_1_id, "confirmed": result.confirmed}
+            )
+        if not result.user_2_id == user_id:
+            friends.append(
+                {"friend_id": result.user_2_id, "confirmed": result.confirmed}
+            )
     db.close()
-    return result
+    return friends
 
 
 def add(user_id, friend_user_id):

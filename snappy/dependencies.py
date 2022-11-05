@@ -6,7 +6,7 @@ from jose import JWTError, jwt
 from .config import settings
 from .database.user import load as user_load
 from .database.friend import load as load_friends
-from .models import TokenData, UserInDB, Friend
+from .models import TokenData, UserInDB
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/user/token")

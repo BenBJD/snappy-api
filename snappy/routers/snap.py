@@ -39,7 +39,7 @@ def delete_snap(snap_id: str, current_user: UserInDB = Depends(get_current_user)
     snap_database.delete(snap_id)
 
 
-@api.get("/download")
+@api.get("/download/")
 def download_snap(snap_id: str, current_user: UserInDB = Depends(get_current_user)):
     snap_data = snap_database.load(snap_id)
     if snap_data.seen:

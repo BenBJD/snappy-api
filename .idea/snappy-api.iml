@@ -5,7 +5,7 @@
   </component>
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 3.10.8 WSL (Ubuntu): (/home/ben/.local/share/virtualenvs/snappy-api-tQjQYNAs/bin/python3)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Pipenv (snappy-api) (2)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

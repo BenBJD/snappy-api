@@ -22,11 +22,6 @@ class TokenData(BaseModel):
     user_id: str | None = None
 
 
-class Friend(BaseModel):
-    user_1_id: str
-    user_2_id: str
-
-
 class Snap(BaseModel):
     id: str
     from_user_id: str
