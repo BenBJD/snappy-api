@@ -21,7 +21,7 @@ def load_received(user_id):
     db = open_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM snap WHERE to_user_id = %s", (user_id,))
-    result: list[Snap] = cursor.fetchall()
+    result = cursor.fetchall()
     db.close()
     return result
 
@@ -30,7 +30,7 @@ def load_sent(user_id):
     db = open_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM snap WHERE from_user_id = %s", (user_id,))
-    result: list[Snap] = cursor.fetchall()
+    result = cursor.fetchall()
     db.close()
     return result
 
