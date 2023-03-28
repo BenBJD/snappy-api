@@ -9,20 +9,20 @@ def load(user_id: str, confirmed: bool = False):
     results = []
     if confirmed:
         cursor.execute(
-            "SELECT friend.user_1_id, friend.confirmed, users.username, users.snappy_score from friend inner join "
+            "SELECT friend.user_1_id, friend.confirmed, users.username, users.score from friend inner join "
             "users on friend.user_1_id = users.id where confirmed = true and user_2_id = %s", (user_id,)
         )
         cursor.execute(
-            "SELECT friend.user_2_id, friend.confirmed, users.username, users.snappy_score from friend inner join "
+            "SELECT friend.user_2_id, friend.confirmed, users.username, users.score from friend inner join "
             "users on friend.user_2_id = users.id where confirmed = true and user_1_id = %s", (user_id,)
         )
     else:
         cursor.execute(
-            "SELECT friend.user_1_id, friend.confirmed, users.username, users.snappy_score from friend inner join "
+            "SELECT friend.user_1_id, friend.confirmed, users.username, users.score from friend inner join "
             "users on friend.user_1_id = users.id where user_2_id = %s ", (user_id,)
         )
         cursor.execute(
-            "SELECT friend.user_2_id, friend.confirmed, users.username, users.snappy_score from friend inner join "
+            "SELECT friend.user_2_id, friend.confirmed, users.username, users.score from friend inner join "
             "users on friend.user_2_id = users.id where user_1_id = %s ", (user_id,)
         )
     results = cursor.fetchall()
@@ -31,7 +31,7 @@ def load(user_id: str, confirmed: bool = False):
         friend = {
             "confirmed": results[i]["confirmed"],
             "username": results[i]["username"],
-            "snappy_score": results[i]["snappy_score"]
+            "score": results[i]["score"]
         }
         if "user_1_id" in results[i].keys():
             friend["friend_id"] = results[i]['user_1_id']
