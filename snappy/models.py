@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class User(BaseModel):
     username: str
-    snappy_score: int
+    score: int
 
 
 class UserInDB(User):
