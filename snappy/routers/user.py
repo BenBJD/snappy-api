@@ -13,7 +13,7 @@ api = APIRouter(prefix="/api/user")
 
 @api.put("/", status_code=201)
 def add_user(username: str, password: str):
-    user_database.add(username, password)
+    return user_database.add(username, password)
 
 
 @api.delete("/", status_code=200)

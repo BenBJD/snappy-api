@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, HTTPException, status
 from fastapi.responses import FileResponse
 
 from ..database import snap as snap_database
+from ..database import user as user_database
 from ..dependencies import get_current_user, check_user_is_friend
 from ..models import UserInDB, Snap
 
@@ -19,11 +20,15 @@ def send_snap(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
     # Adds entry to database and returns the snap's id
-    snap_id = snap_database.send(current_user.id, to_user_id)
+    snap = snap_database.send(current_user.id, to_user_id)
+    # Increment snappy score
+    user_database.increment_score(current_user.id)
+    user_database.increment_score(to_user_id)
     # Write snap image to file
-    file_output = open("snaps/" + snap_id + ".png", "w+b")
+    file_output = open("snaps/" + snap["id"] + ".jpeg", "w+b")
     file_output.write(snap_file.file.read())
     file_output.close()
+    return snap
 
 
 @api.get("/")
@@ -42,9 +47,10 @@ def delete_snap(snap_id: str, current_user: UserInDB = Depends(get_current_user)
 @api.get("/download/")
 def download_snap(snap_id: str, current_user: UserInDB = Depends(get_current_user)):
     snap_data = snap_database.load(snap_id)
-    if snap_data.seen:
+    print(snap_data)
+    if snap_data["seen"]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Snap has been downloaded already")
-    if not snap_data.to_user_id == current_user.id:
+    if not snap_data["to_user_id"] == current_user.id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    snap_database.mark_read(snap_id)
-    return FileResponse("snaps/" + snap_id + ".png", media_type="image/png")
+    # snap_database.mark_read(snap_id)
+    return FileResponse("snaps/" + snap_id + ".jpeg", media_type="image/jpeg")

@@ -10,12 +10,13 @@ def add(username: str, password: str):
     cursor = db.cursor()
     password_hash: str = pwd_context.hash(password)
     cursor.execute(
-        "INSERT INTO users (username, password_hash) VALUES (%s, %s)",
+        "INSERT INTO users (username, password_hash) VALUES (%s, %s) RETURNING id",
         (username, password_hash),
     )
+    user_id = cursor.fetchone[0]
     db.commit()
     db.close()
-    return
+    return user_id
 
 
 def delete(user_id: str):
@@ -65,3 +66,15 @@ def save(user_id, username=None, password=None):
     db.commit()
     db.close()
     return
+
+
+def increment_score(user_id):
+    db = open_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "UPDATE users SET snappy_score = snappy_score + 1 WHERE id = %s", (user_id,)
+    )
+    db.commit()
+    db.close()
+    return
+

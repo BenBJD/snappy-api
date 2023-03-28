@@ -38,7 +38,6 @@ def load(user_id: str, confirmed: bool = False):
         if "user_2_id" in results[i].keys():
             friend["friend_id"] = results[i]['user_2_id']
         formatted_friends.append(friend)
-    print(formatted_friends)
     db.close()
     return formatted_friends
 

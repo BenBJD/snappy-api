@@ -53,9 +53,7 @@ def check_user_is_friend(user_id: str, friend_id: str, confirmed: bool):
     # Get the friend ids, excluding the users own id
     friend_ids = []
     for i in friends:
-        if not i.user_1_id == user_id:
-            friend_ids.append(i.user_1_id)
-        elif not i.user_2_id == user_id:
-            friend_ids.append(i.user_2_id)
+        if not i["friend_id"] == user_id:
+            friend_ids.append(i["friend_id"])
     # Return true if they are friends
     return friend_id in friend_ids

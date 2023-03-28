@@ -9,12 +9,13 @@ def send(from_user_id, to_user_id):
     cursor = db.cursor()
     snap_id = str(uuid1())
     cursor.execute(
-        "INSERT INTO snap (id, from_user_id, to_user_id) VALUES (%s, %s, %s)",
+        "INSERT INTO snap (id, from_user_id, to_user_id) VALUES (%s, %s, %s) RETURNING date, time, from_user_id",
         (snap_id, from_user_id, to_user_id),
     )
+    result = cursor.fetchone()
     db.commit()
     db.close()
-    return snap_id
+    return {"id": snap_id, "from_user_id": result[2], "date": result[0], "time": result[1]}
 
 
 def load_received(user_id):
@@ -38,7 +39,7 @@ def load_sent(user_id):
 def load(snap_id):
     db = open_db()
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM snap WHERE id = %s", (snap_id))
+    cursor.execute("SELECT * FROM snap WHERE id = %s", (snap_id,))
     result: Snap = cursor.fetchone()
     db.close()
     return result
